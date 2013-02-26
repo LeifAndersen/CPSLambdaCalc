@@ -1,41 +1,37 @@
 // Language:
-// <cexp> ::= (<aexp> <aexp>)
+// <cexp> ::= (<aexp> <aexp>*)
 //         |   <hault>
-// <aexp> ::= (λ (<var> <var>) <cexp>)
+// <aexp> ::= (λ (<var>*) <cexp>)
 //         | <var>
 //
-// Broken Down to:
-// <cexp>    ::= <ListExp> | <HaultExp>
-// <ListExp> ::= List(<aexp>)
-// <aexp> ::= <LambExp> | <VarExp>
 
 abstract class Exp { }
 
 abstract class CExp extends Exp { }
 
-case class ListExp(prog: AExp, arg: AExp) extends CExp { }
+case class ListExp(prog: AExp, arg: List[AExp]) extends CExp { }
 
 case class HaultExp() extends CExp { }
 
 abstract class AExp() extends Exp { }
 
-case class LambExp(cont: Exp, param: VarExp, body: CExp) extends AExp { }
+case class LambExp(param: List[VarExp], body: CExp) extends AExp { }
 
 case class VarExp(value: String) extends AExp { }
 
-case class Closure(e: Exp, env: Map[VarExp, Any])
+case class Closure(e: Exp, env: Map[VarExp, Exp]) extends Exp { }
 
 object Analysis {
-  var code = ListExp(VarExp("3"), VarExp("3"));
+  //var code = ListExp(VarExp("3"), VarExp("3"));
 
-  def eval(e: Exp, env: Map[VarExp, Any]): Any = e match {
-    case ListExp(prog, arg) => apply(eval(prog, env).asInstanceOf[Closure], eval(arg, env).asInstanceOf[Exp]);
-    case LambExp(cont, pram, body) => eval(cont, env + (pram -> Closure(e, env)));
-    case VarExp(str) => env(e.asInstanceOf[VarExp]);
+  def eval(e: Exp, env: Map[VarExp, Exp]): Exp = e match {
+    case ListExp(prog, arg) => apply(eval(prog, env), for(i <- arg) yield eval(i, env));
+    case LambExp(param, body) => Closure(e, env);
+    case arg: List[VarExp] => env(e.asInstanceOf[VarExp]);
   }
 
-  def apply(f: Closure, x: Exp): Any = f match {
-    case Closure(LambExp(cont, param, body), env) => eval(body, env + (param -> x));
+  def apply(f: Exp, x: List[Exp]): Exp = f match {
+    case Closure(LambExp(param, body), env) => eval(body, env ++ (for(i <- param; j <- x) yield (i -> j)));
   }
 
   def main(args: Array[String]) {
