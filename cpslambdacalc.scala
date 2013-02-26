@@ -27,7 +27,7 @@ object Analysis {
   def eval(e: Exp, env: Map[VarExp, Exp]): Exp = e match {
     case ListExp(prog, arg) => apply(eval(prog, env), for(i <- arg) yield eval(i, env));
     case LambExp(param, body) => Closure(e, env);
-    case arg: List[VarExp] => env(e.asInstanceOf[VarExp]);
+    case a: VarExp => env(a);
   }
 
   def apply(f: Exp, x: List[Exp]): Exp = f match {
