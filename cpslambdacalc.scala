@@ -23,6 +23,8 @@ case class Closure(e: Exp, env: Map[VarExp, Closure]) extends Exp { }
 
 object Analysis {
 
+  var code = RunExp(LambExp(List(VarExp("x")), HaultExp()), List(VarExp("x")));
+
   def eval(e: Exp, env: Map[VarExp, Closure]): Closure = e match {
     case RunExp(prog, arg) => apply(eval(prog, env), for(i <- arg) yield eval(i, env));
     case LambExp(param, body) => Closure(e, env);
@@ -34,6 +36,6 @@ object Analysis {
   }
 
   def main(args: Array[String]) {
-    println("Hello World!");
+    eval(code, Map[VarExp, Closure]());
   }
 }
