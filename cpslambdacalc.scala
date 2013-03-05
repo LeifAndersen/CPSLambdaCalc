@@ -19,7 +19,7 @@ case class LambExp(param: List[VarExp], body: CExp) extends AExp { }
 
 case class VarExp(value: String) extends AExp { }
 
-case class Closure(e: Exp, env: Map[VarExp, Address]) extends Exp { }
+case class Closure(e: Exp, env: Map[VarExp, Address]) { }
 
 case class Address(address: Int) { }
 
@@ -48,7 +48,7 @@ object Analysis {
     case a: HaultExp => null;
   }
 
-  def apply(f: Exp, x: List[Closure]): Closure = f match {
+  def apply(f: Closure, x: List[Closure]): Closure = f match {
     case Closure(LambExp(param, body), env) => eval(body, env ++ param.zip(for(i <- x) yield extend(i)));
   }
 
