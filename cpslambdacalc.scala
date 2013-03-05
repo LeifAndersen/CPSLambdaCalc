@@ -30,6 +30,24 @@ object Analysis {
   var store = Map[Address, Closure]();
   var id = 0;
 
+  var aStore = Map[Address, List[Closure]]();
+  val maxId = 10;
+
+  def aextend(e: Closure): Address = {
+    val addr = Address(id);
+    if(aStore.contains(addr)) {
+      aStore = aStore + (addr -> (aStore(addr) ::: List(e)));
+    } else {
+      aStore += (addr -> List(e));
+    }
+    id = (id + 1) % maxId;
+    return addr;
+  }
+
+  def alookup(e: Address): List[Closure] = {
+    return aStore(e);
+  }
+
   def extend(e: Closure): Address = {
     val addr = Address(id);
     store += (addr -> e);
