@@ -84,8 +84,8 @@ object Analysis extends App {
   }
 
   def step(state: State): EvalState = state match {
-    case EvalState(e: Exp, env: Map[VarExp, Address]) => eval(e, env);
-    case ApplyState(f: EvalState, x: List[EvalState]) => apply(f, x);
+    case EvalState(e, env) => eval(e, env);
+    case ApplyState(f, x) => apply(f, x);
     case HaultState() => null;
   }
 
