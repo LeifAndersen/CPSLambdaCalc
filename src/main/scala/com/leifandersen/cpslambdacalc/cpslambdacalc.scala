@@ -60,6 +60,24 @@ object Analysis extends App {
     return aStore(e);
   }
 
+  def aeval(e: Exp, env: Map[VarExp, Address]): List[EvalState] = e match {
+    case ApplyExp(prog, arg) => astep(ApplyState(eval(prog, env),
+                                                for(i <- arg) yield eval(i, env)));
+    case LambExp(param, body) => List(EvalState(e, env));
+    case a: VarExp => alookup(env(a));
+    case a: HaultExp => astep(HaultState());
+  }
+
+  def aapply(f: EvalState, x: List[EvalState]): EvalState = f match {
+    case EvalState(LambExp(param, body), env) => EvalState(body, env ++ param.zip(for(i <- x) yield aextend(i)));
+  }
+
+  def astep(state: State): List[EvalState] = state match {
+    case EvalState(e, env) => aeval(e, env);
+    case ApplyState(f, x) => List(aapply(f, x));
+    case HaultState() => null;
+  }
+
   def extend(e: EvalState): Address = {
     val addr = Address(id);
     store += (addr -> e);
@@ -96,5 +114,6 @@ object Analysis extends App {
   var code = ApplyExp(LambExp(List(VarExp("x")), VarExp("x")),
                       List(LambExp(List(VarExp("x")), VarExp("x"))));
   eval(code, Map[VarExp, Address]());
+  aeval(code, Map[VarExp, Address]());
 
 }
