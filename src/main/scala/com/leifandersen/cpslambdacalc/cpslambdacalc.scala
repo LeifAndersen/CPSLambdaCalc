@@ -76,23 +76,31 @@ object Analysis extends App {
                                                                for(i <- arg) yield EvalState(i, env)));
     case EvalState(e, env) => aeval(e, env);
     case ApplyState(f, x) => Set(aapply(f, x));
-    case HaultState() => null;
+    case HaultState() => Set(HaultState());
   }
 
-  def inject(code: Exp): EvalState = {
+  def ainject(code: Exp): EvalState = {
     return EvalState(code, Map[VarExp,Address]())
   }
 
-  def fix(in: Set[State]): Set[State] = {
-    return null;
+  def afix(in: Set[State]): Set[State] = {
+    var next = in;
+    for(i <- in) {
+      next ++= astep(i);
+    };
+    if (in == next) {
+      return next;
+    } else {
+      return afix(next);
+    }
   }
 
   val code = ApplyExp(LambExp(List(VarExp("x")), HaultExp()),
                       List(LambExp(List(VarExp("x")), HaultExp())));
   System.out.println(code);
-  val startState = inject(code);
+  val startState = ainject(code);
   states += startState;
-  val result = astep(startState);
+  val result = afix(states);
   System.out.println("Start State:");
   System.out.println(startState);
   System.out.println("\nResulting State:");
