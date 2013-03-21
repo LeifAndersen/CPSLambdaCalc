@@ -44,8 +44,6 @@ object Analysis extends App {
   var aStore = Map[Address, Set[EvalState]]();
   val maxId = 10;
 
-  var states = Set[State]();
-
   def aextend(e: EvalState): Address = {
     val addr = Address(id);
     if(aStore.contains(addr)) {
@@ -95,6 +93,26 @@ object Analysis extends App {
     }
   }
 
+  def arun(in: State): Set[State] = {
+    afix(Set(in));
+  }
+
+  def dotify(in: Set[State]): String = {
+    var i = 0;
+    def dotifyState(state: State): String = state match {
+      case EvalState(e, env) => "s" + i + "[label=\"Eval State\"];\n";
+      case ApplyState(f, x) => "s" + i + "[label=\"Apply State\"];\n";
+      case HaultState() => "s" + i + "[label=\"Hault State\"];\n"
+    }
+    var text = "digraph G {\n";
+    for(state <- in) {
+      text += dotifyState(state);
+      i += 1;
+    }
+    text += "}\n";
+    return text;
+  }
+
   val code = ApplyExp(LambExp(List(VarExp("x")), HaultExp()),
                       List(LambExp(List(VarExp("x")), HaultExp())));
 //  val code = LambExp(List(VarExp("x"), VarExp("k")), ApplyExp(VarExp("k"), List(VarExp("x"))));
@@ -102,12 +120,8 @@ object Analysis extends App {
 //                      List(LambExp(List(VarExp("x"), VarExp("k")), ApplyExp(VarExp("k"), List(VarExp("x")))),
 //                           LambExp(List(), HaultExp())));
 
-  System.out.println(code);
   val startState = ainject(code);
-  states += startState;
-  val result = afix(states);
-  System.out.println("Start State:");
-  System.out.println(startState);
-  System.out.println("\nResulting State:");
-  System.out.println(result);
+  val result = arun(startState);
+  val dot = dotify(result);
+  System.out.println(dot);
 }
