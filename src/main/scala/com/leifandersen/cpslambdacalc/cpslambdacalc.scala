@@ -2,7 +2,6 @@ package com.leifandersen.cpslambdacalc
 
 // Language:
 // <cexp> ::= (<aexp> <aexp>*)
-//        ::=  <aexp>
 //         |   <hault>
 // <aexp> ::= (λ (<var>*) <cexp>)
 //         | <var>
@@ -16,14 +15,14 @@ case class ApplyExp(prog: AExp, arg: List[AExp]) extends CExp { }
 
 case class HaultExp() extends CExp { }
 
-abstract class AExp() extends CExp { }
+abstract class AExp() extends Exp { }
 
 case class LambExp(param: List[VarExp], body: CExp) extends AExp { }
 
 case class VarExp(value: String) extends AExp { }
 
 
-// case class Closure(e: Exp, env: Map[VarExp, Address]) { }
+case class Closure(e: Exp, env: Map[VarExp, Address]) { }
 
 
 case class Address(address: Int) { }
@@ -42,78 +41,60 @@ object Analysis extends App {
   var store = Map[Address, EvalState]();
   var id = 0;
 
-  var aStore = Map[Address, List[EvalState]]();
+  var aStore = Map[Address, Set[EvalState]]();
   val maxId = 10;
+
+  var states = Set[State]();
 
   def aextend(e: EvalState): Address = {
     val addr = Address(id);
     if(aStore.contains(addr)) {
-      aStore = aStore + (addr -> (aStore(addr) ::: List(e)));
+      aStore = aStore + (addr -> (aStore(addr) + e));
     } else {
-      aStore += (addr -> List(e));
+      aStore += (addr -> Set(e));
     }
     id = (id + 1) % maxId;
     return addr;
   }
 
-  def alookup(e: Address): List[EvalState] = {
+  def alookup(e: Address): Set[EvalState] = {
     return aStore(e);
   }
 
-  def aeval(e: Exp, env: Map[VarExp, Address]): List[EvalState] = e match {
-    case ApplyExp(prog, arg) => astep(ApplyState(eval(prog, env),
-                                                for(i <- arg) yield eval(i, env)));
-    case LambExp(param, body) => List(EvalState(e, env));
-    case a: VarExp => alookup(env(a));
-    case a: HaultExp => astep(HaultState());
+  def aeval(e: Exp, env: Map[VarExp, Address]): Set[State] = e match {
+    case LambExp(param, body) => Set(EvalState(e, env));
+    case a: VarExp => Set[State]() ++ alookup(env(a));
+    case a: HaultExp => Set(HaultState());
   }
 
-  def aapply(f: EvalState, x: List[EvalState]): EvalState = f match {
+  def aapply(f: EvalState, x: List[EvalState]): State = f match {
     case EvalState(LambExp(param, body), env) => EvalState(body, env ++ param.zip(for(i <- x) yield aextend(i)));
   }
 
-  def astep(state: State): List[EvalState] = state match {
+  def astep(state: State): Set[State] = state match {
+    case EvalState(ApplyExp(prog, arg), env) => Set(ApplyState(EvalState(prog, env),
+                                                               for(i <- arg) yield EvalState(i, env)));
     case EvalState(e, env) => aeval(e, env);
-    case ApplyState(f, x) => List(aapply(f, x));
+    case ApplyState(f, x) => Set(aapply(f, x));
     case HaultState() => null;
   }
 
-  def extend(e: EvalState): Address = {
-    val addr = Address(id);
-    store += (addr -> e);
-    id = id + 1;
-    return addr;
+  def inject(code: Exp): EvalState = {
+    return EvalState(code, Map[VarExp,Address]())
   }
 
-  def lookup(e: Address): EvalState = {
-    return store(e);
+  def fix(in: Set[State]): Set[State] = {
+    return null;
   }
 
-  def eval(e: Exp, env: Map[VarExp, Address]): EvalState = e match {
-    case ApplyExp(prog, arg) => step(ApplyState(eval(prog, env),
-                                                for(i <- arg) yield eval(i, env)));
-    case LambExp(param, body) => EvalState(e, env);
-    case a: VarExp => lookup(env(a));
-    case a: HaultExp => step(HaultState());
-  }
-
-  def apply(f: EvalState, x: List[EvalState]): EvalState = f match {
-    case EvalState(LambExp(param, body), env) => EvalState(body, env ++ param.zip(for(i <- x) yield extend(i)));
-  }
-
-  def step(state: State): EvalState = state match {
-    case EvalState(e, env) => eval(e, env);
-    case ApplyState(f, x) => apply(f, x);
-    case HaultState() => null;
-  }
-
-  def inject(code: Exp): State = {
-    EvalState(code, Map[VarExp, Address]());
-  }
-
-  var code = ApplyExp(LambExp(List(VarExp("x")), VarExp("x")),
-                      List(LambExp(List(VarExp("x")), VarExp("x"))));
-  eval(code, Map[VarExp, Address]());
-  aeval(code, Map[VarExp, Address]());
-
+  val code = ApplyExp(LambExp(List(VarExp("x")), HaultExp()),
+                      List(LambExp(List(VarExp("x")), HaultExp())));
+  System.out.println(code);
+  val startState = inject(code);
+  states += startState;
+  val result = astep(startState);
+  System.out.println("Start State:");
+  System.out.println(startState);
+  System.out.println("\nResulting State:");
+  System.out.println(result);
 }
