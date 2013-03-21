@@ -97,6 +97,11 @@ object Analysis extends App {
 
   val code = ApplyExp(LambExp(List(VarExp("x")), HaultExp()),
                       List(LambExp(List(VarExp("x")), HaultExp())));
+//  val code = LambExp(List(VarExp("x"), VarExp("k")), ApplyExp(VarExp("k"), List(VarExp("x"))));
+//  val code = ApplyExp(LambExp(List(VarExp("x"), VarExp("k")), ApplyExp(VarExp("k"), List(VarExp("x")))),
+//                      List(LambExp(List(VarExp("x"), VarExp("k")), ApplyExp(VarExp("k"), List(VarExp("x")))),
+//                           LambExp(List(), HaultExp())));
+
   System.out.println(code);
   val startState = ainject(code);
   states += startState;
