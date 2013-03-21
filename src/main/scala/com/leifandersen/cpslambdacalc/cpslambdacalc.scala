@@ -104,12 +104,7 @@ object Analysis extends App {
       case ApplyState(f, x) => "s" + i + "[label=\"Apply State\"];\n";
       case HaultState() => "s" + i + "[label=\"Hault State\"];\n"
     }
-    var text = "digraph G {\n";
-    for(state <- in) {
-      text += dotifyState(state);
-      i += 1;
-    }
-    text += "}\n";
+    var text = "digraph G {\n" + in.foldLeft("")((x, y) => { i += 1; x + dotifyState(y) }) + "}\n";
     return text;
   }
 
@@ -123,5 +118,5 @@ object Analysis extends App {
   val startState = ainject(code);
   val result = arun(startState);
   val dot = dotify(result);
-  System.out.println(dot);
+  println(dot);
 }
