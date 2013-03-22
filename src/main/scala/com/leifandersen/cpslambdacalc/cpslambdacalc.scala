@@ -81,36 +81,69 @@ object Analysis extends App {
     return EvalState(code, Map[VarExp,Address]())
   }
 
-  def afix(in: Set[State]): Set[State] = {
+  def afix(in: Map[State,Set[State]]): Map[State,Set[State]] = {
     var next = in;
-    for(i <- in) {
-      next ++= astep(i);
-    };
-    if (in == next) {
+    for(i <- in.values) {
+      for(j <- i) {
+        if(!next.contains(j)) {
+          var step = astep(j);
+          next += (j -> step);
+        }
+      }
+    }
+    if(in == next) {
       return next;
     } else {
       return afix(next);
     }
   }
 
-  def arun(in: State): Set[State] = {
-    afix(Set(in));
+  def arun(in: State): Map[State,Set[State]] = {
+    var step = astep(in);
+    afix(Map(in->step));
   }
 
-  def dotify(in: Set[State]): String = {
-    var i = 0;
-    def dotifyState(state: State): String = state match {
-      case EvalState(e, env) => "s" + i + "[label=\"Eval State\"];\n";
-      case ApplyState(f, x) => "s" + i + "[label=\"Apply State\"];\n";
-      case HaultState() => "s" + i + "[label=\"Hault State\"];\n"
+  def dotify(in: Map[State,Set[State]]): String = {
+    var i = 1;
+    var stateStrings = Map[State,String]();
+
+    def dotifyExp(e: Exp): String = e match {
+      case ApplyExp(prog, arg) => "Apply Expression";
+      case HaultExp() => "Hault";
+      case LambExp(param, body) => "Lambda Expression";
+      case VarExp(value) => "Variable: " + value;
     }
-    var text = "digraph G {\n" + in.foldLeft("")((x, y) => { i += 1; x + dotifyState(y) }) + "}\n";
+
+    def dotifyStateInline(state: State): String = state match {
+      case EvalState(e, env) => "Eval State";
+      case ApplyState(f, x) => "Apply State";
+      case HaultState() => "Hault State";
+    }
+
+    def dotifyState(state: State): String = state match {
+      case EvalState(e, env) => "s" + i + "[label=\"Eval State:" + dotifyExp(e) + "\"];\n";
+      case ApplyState(f, x) => "s" + i + "[label=\"Apply State:" + dotifyStateInline(f) + "\"];\n";
+      case HaultState() => "s" + i + "[label=\"Hault State\"];\n";
+    }
+//    var text = "digraph G {\n" + in.foldLeft("")((x, y) => { i += 1; x + dotifyState(y) }) + "}\n";
+    var text = "digraph G {\n";
+    for(state <- in.keys) {
+      text += dotifyState(state);
+      stateStrings += (state -> ("s" + i));
+      i += 1;
+    }
+    for(state <- in.keys) {
+      for(step <- in(state)) {
+        text += stateStrings(state) + " -> " + stateStrings(step) + ";\n";
+      }
+    }
+    text += "}\n";
     return text;
   }
 
-  val code = ApplyExp(LambExp(List(VarExp("x")), HaultExp()),
-                      List(LambExp(List(VarExp("x")), HaultExp())));
-//  val code = LambExp(List(VarExp("x"), VarExp("k")), ApplyExp(VarExp("k"), List(VarExp("x"))));
+//  val code = ApplyExp(LambExp(List(VarExp("x")), HaultExp()),
+//                      List(LambExp(List(VarExp("x")), HaultExp())));
+  val code = LambExp(List(VarExp("x"), VarExp("k")), ApplyExp(VarExp("k"), List(VarExp("x"))));
 //  val code = ApplyExp(LambExp(List(VarExp("x"), VarExp("k")), ApplyExp(VarExp("k"), List(VarExp("x")))),
 //                      List(LambExp(List(VarExp("x"), VarExp("k")), ApplyExp(VarExp("k"), List(VarExp("x")))),
 //                           LambExp(List(), HaultExp())));
