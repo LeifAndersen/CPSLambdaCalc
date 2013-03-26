@@ -41,7 +41,7 @@ object Analysis extends App {
   var id = 0;
 
   var aStore = Map[Address, Set[Closure]]();
-  val maxId = 1;
+  val maxId = 10;
 
   def aextend(e: Closure): Address = {
     val addr = Address(id);
@@ -118,61 +118,26 @@ object Analysis extends App {
     afix(Map(in->step));
   }
 
-  def dotify(in: Map[State,Set[State]]): String = {
-    var i = 1;
-    var stateStrings = Map[State,String]();
-
-    def dotifyExp(e: Exp): String = e match {
-      case ApplyExp(prog, arg) => "Apply Expression";
-      case HaltExp() => "Halt";
-      case LambExp(param, body) => "Lambda Expression";
-      case VarExp(value) => "Variable: " + value;
-    }
-
-    def dotifyStateInline(state: State): String = state match {
-      case EvalState(e, env) => "Eval State";
-      case ApplyState(f, x) => "Apply State";
-      case HaltState() => "Halt State";
-    }
-
-    def dotifyState(state: State): String = state match {
-      case EvalState(e, env) => "s" + i + "[label=\"Eval State:" + dotifyExp(e) + "\"];\n";
-      case ApplyState(f, x) => "s" + i + "[label=\"Apply State:" + dotifyStateInline(f) + "\"];\n";
-      case HaltState() => "s" + i + "[label=\"Halt State\"];\n";
-    }
-//    var text = "digraph G {\n" + in.foldLeft("")((x, y) => { i += 1; x + dotifyState(y) }) + "}\n";
-    var text = "digraph G {\n";
-    for(state <- in.keys) {
-      text += dotifyState(state);
-      stateStrings += (state -> ("s" + i));
-      i += 1;
-    }
-    for(state <- in.keys; step <- in(state)) {
-      text += stateStrings(state) + " -> " + stateStrings(step) + ";\n";
-    }
-    text += "}\n";
-    return text;
-  }
 
 //  val code = ApplyExp(LambExp(List(VarExp("x")), HaltExp()),
 //                      List(LambExp(List(VarExp("x")), HaltExp())));
 //  val code = LambExp(List(VarExp("x"), VarExp("k")), ApplyExp(VarExp("k"), List(VarExp("x"))));
-  val code = ApplyExp(LambExp(List(VarExp("x"), VarExp("k")),
-                              ApplyExp(VarExp("k"), List(VarExp("x"), VarExp("k")))),
-                      List(LambExp(List(VarExp("a"), VarExp("b")),
-                                   ApplyExp(VarExp("b"), List(VarExp("a"), VarExp("b")))),
-                           LambExp(List(VarExp("q"), VarExp("w")),
-                                   ApplyExp(VarExp("w"), List(VarExp("q"), VarExp("w"))))));
-//  val code = ApplyExp(LambExp(List(VarExp("x")), ApplyExp(VarExp("x"), List(VarExp("x")))),
-//                      List(LambExp(List(VarExp("x")), ApplyExp(VarExp("x"), List(VarExp("x"))))));
+//  val code = ApplyExp(LambExp(List(VarExp("x"), VarExp("k")),
+//                              ApplyExp(VarExp("k"), List(VarExp("x"), VarExp("k")))),
+//                      List(LambExp(List(VarExp("a"), VarExp("b")),
+//                                   ApplyExp(VarExp("b"), List(VarExp("a"), VarExp("b")))),
+//                           LambExp(List(VarExp("q"), VarExp("w")),
+//                                   ApplyExp(VarExp("w"), List(VarExp("q"), VarExp("w"))))));
+  val code = ApplyExp(LambExp(List(VarExp("x")), ApplyExp(VarExp("x"), List(VarExp("x")))),
+                      List(LambExp(List(VarExp("x")), ApplyExp(VarExp("x"), List(VarExp("x"))))));
 //  val code = ApplyExp(LambExp(List(VarExp("x"), VarExp("k")),
 //                              ApplyExp(VarExp("k"), List(VarExp("x"), VarExp("x")))),
 //                      List(LambExp(List[VarExp](), HaltExp()),
-//                           LambExp(List(VarExp("x"), VarExp("k")),
-//                                   ApplyExp(VarExp("k"), List[VarExp]()))));
+//                           LambExp(List(VarExp("a"), VarExp("b")),
+//                                   ApplyExp(VarExp("a"), List[VarExp]()))));
 
   val startState = ainject(code);
   val result = arun(startState);
-  val dot = dotify(result);
+  val dot = Dotify.dotify(result);
   println(dot);
 }
