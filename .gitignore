@@ -1,2 +1,11 @@
 *~
 **/*~
+\#*
+**/\#*
+target/*
+project/*
+.cache
+.classpath
+.ensime
+.project
+
