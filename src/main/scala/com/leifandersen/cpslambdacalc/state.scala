@@ -23,8 +23,8 @@ case class Address(address: Int) { }
 
 abstract class State { }
 
-case class EvalState(e: Exp, env: Map[VarExp, Address]) extends State { }
+case class EvalState(e: Exp, env: Map[VarExp, Address], store: Store) extends State { }
 
-case class ApplyState(f: EvalState, x: List[EvalState]) extends State { }
+case class ApplyState(f: EvalState, x: List[EvalState], store: Store) extends State { }
 
 case class HaltState() extends State { }

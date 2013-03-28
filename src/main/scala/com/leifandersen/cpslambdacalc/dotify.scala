@@ -13,14 +13,14 @@ object Dotify {
     }
 
     def dotifyStateInline(state: State): String = state match {
-      case EvalState(e, env) => "Eval State";
-      case ApplyState(f, x) => "Apply State";
+      case EvalState(e, env, s) => "Eval State";
+      case ApplyState(f, x, s) => "Apply State";
       case HaltState() => "Halt State";
     }
 
     def dotifyState(state: State): String = state match {
-      case EvalState(e, env) => "s" + i + "[label=\"Eval State:" + dotifyExp(e) + "\"];\n";
-      case ApplyState(f, x) => "s" + i + "[label=\"Apply State:" + dotifyStateInline(f) + "\"];\n";
+      case EvalState(e, env, s) => "s" + i + "[label=\"Eval State:" + dotifyExp(e) + "\"];\n";
+      case ApplyState(f, x, s) => "s" + i + "[label=\"Apply State:" + dotifyStateInline(f) + "\"];\n";
       case HaltState() => "s" + i + "[label=\"Halt State\"];\n";
     }
 //    var text = "digraph G {\n" + in.foldLeft("")((x, y) => { i += 1; x + dotifyState(y) }) + "}\n";
