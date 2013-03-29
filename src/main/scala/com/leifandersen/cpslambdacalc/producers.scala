@@ -44,5 +44,22 @@ abstract class Producer[T] {
       }
     }
   }
+
+  def iterator = new Iterator[T] {
+    private var current: Any = null
+    private def lookAhead = {
+      if (current == null) current = coordinator !? Next
+      current
+    }
+
+    def hasNext: Boolean = lookAhead match {
+      case Some(x) => true
+      case None => { coordinator ! Stop; false }
+    }
+
+    def next: T = lookAhead match {
+      case Some(x) => current = null; x.asInstanceOf[T]
+    }
+  }
 }
 

@@ -83,15 +83,15 @@ object Analysis extends App {
 //                                   ApplyExp(VarExp("b"), List(VarExp("a"), VarExp("b")))),
 //                           LambExp(List(VarExp("q"), VarExp("w")),
 //                                   ApplyExp(VarExp("w"), List(VarExp("q"), VarExp("w"))))));
-  val code = ApplyExp(LambExp(List(VarExp("x")), ApplyExp(VarExp("x"), List(VarExp("x")))),
-                      List(LambExp(List(VarExp("x")), ApplyExp(VarExp("x"), List(VarExp("x"))))));
-//  val code = ApplyExp(LambExp(List(VarExp("x"), VarExp("k")),
-//                              ApplyExp(VarExp("k"), List(VarExp("x")))),
-//                      List(LambExp(List[VarExp](), HaltExp()),
-//                           LambExp(List(VarExp("a")),
-//                                   ApplyExp(VarExp("a"), List[VarExp]()))));
+//  val code = ApplyExp(LambExp(List(VarExp("x")), ApplyExp(VarExp("x"), List(VarExp("x")))),
+//                      List(LambExp(List(VarExp("x")), ApplyExp(VarExp("x"), List(VarExp("x"))))));
+  val code = ApplyExp(LambExp(List(VarExp("x"), VarExp("k")),
+                              ApplyExp(VarExp("k"), List(VarExp("x")))),
+                      List(LambExp(List[VarExp](), HaltExp()),
+                           LambExp(List(VarExp("a")),
+                                   ApplyExp(VarExp("a"), List[VarExp]()))));
 
-  val storeSize = 1;
+  val storeSize = 2;
   val startState = ainject(code, storeSize);
   val result = arun(startState);
   val dot = Dotify.dotify(result);
