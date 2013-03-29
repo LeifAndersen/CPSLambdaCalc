@@ -55,11 +55,20 @@ object Analysis extends App {
 
   def afix(in: Map[State,Set[State]]): Map[State,Set[State]] = {
     var next = in;
+    var producers = Map[State, StateProducer]();
     for(i <- in.values; j <- i) {
       if(!next.contains(j)) {
-        var step = astep(j);
-        next += (j -> step);
+        producers += (j -> new StateProducer(j))
+//        var step = astep(j);
+//        next += (j -> step);
       }
+    }
+    for(i <- producers.keys) {
+      var tmpStep = Set[State]();
+      for(j <- producers(i).iterator) {
+        tmpStep ++= j
+      }
+      next += (i -> tmpStep);
     }
     if(in == next) {
       return next;
@@ -83,15 +92,15 @@ object Analysis extends App {
 //                                   ApplyExp(VarExp("b"), List(VarExp("a"), VarExp("b")))),
 //                           LambExp(List(VarExp("q"), VarExp("w")),
 //                                   ApplyExp(VarExp("w"), List(VarExp("q"), VarExp("w"))))));
-//  val code = ApplyExp(LambExp(List(VarExp("x")), ApplyExp(VarExp("x"), List(VarExp("x")))),
-//                      List(LambExp(List(VarExp("x")), ApplyExp(VarExp("x"), List(VarExp("x"))))));
-  val code = ApplyExp(LambExp(List(VarExp("x"), VarExp("k")),
-                              ApplyExp(VarExp("k"), List(VarExp("x")))),
-                      List(LambExp(List[VarExp](), HaltExp()),
-                           LambExp(List(VarExp("a")),
-                                   ApplyExp(VarExp("a"), List[VarExp]()))));
+  val code = ApplyExp(LambExp(List(VarExp("x")), ApplyExp(VarExp("x"), List(VarExp("x")))),
+                      List(LambExp(List(VarExp("x")), ApplyExp(VarExp("x"), List(VarExp("x"))))));
+//  val code = ApplyExp(LambExp(List(VarExp("x"), VarExp("k")),
+//                              ApplyExp(VarExp("k"), List(VarExp("x")))),
+//                      List(LambExp(List[VarExp](), HaltExp()),
+//                           LambExp(List(VarExp("a")),
+//                                   ApplyExp(VarExp("a"), List[VarExp]()))));
 
-  val storeSize = 2;
+  val storeSize = 5;
   val startState = ainject(code, storeSize);
   val result = arun(startState);
   val dot = Dotify.dotify(result);

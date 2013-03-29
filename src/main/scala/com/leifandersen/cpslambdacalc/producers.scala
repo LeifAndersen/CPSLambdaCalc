@@ -6,18 +6,29 @@ import scala.actors.Actor._
 case object Next
 case object Stop
 
-class StateProducer(n: State) extends Producer[State] {
+class SetStateProducer(n: Set[State]) extends Producer[Map[State, Set[State]]] {
   def produceValues = traverse(n);
-  def traverse(n: State) {
+  def traverse(n: Set[State]) {
     if(n != null) {
-      for(i <- Analysis.astep(n)) {
-        produce(n)
+      for(i <- n) {
+        var next = Analysis.astep(i)
+        produce(Map(i -> next))
       }
     }
   }
 }
 
+class StateProducer(n: State) extends Producer[Set[State]] {
+  def produceValues = traverse(n);
+  def traverse(n: State) {
+    if(n != null) {
+      produce(Analysis.astep(n))
+    }
+  }
+}
+
 abstract class Producer[T] {
+  private val Undefined = new Object
   protected def produceValues: Any
   protected def produce(x: T) {
     coordinator ! Some(x)
@@ -46,9 +57,9 @@ abstract class Producer[T] {
   }
 
   def iterator = new Iterator[T] {
-    private var current: Any = null
+    private var current: Any = Undefined
     private def lookAhead = {
-      if (current == null) current = coordinator !? Next
+      if (current == Undefined) current = coordinator !? Next
       current
     }
 
@@ -58,7 +69,7 @@ abstract class Producer[T] {
     }
 
     def next: T = lookAhead match {
-      case Some(x) => current = null; x.asInstanceOf[T]
+      case Some(x) => current = Undefined; x.asInstanceOf[T]
     }
   }
 }
