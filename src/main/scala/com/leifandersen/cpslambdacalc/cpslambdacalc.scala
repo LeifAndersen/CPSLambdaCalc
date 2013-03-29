@@ -31,6 +31,7 @@ object Analysis extends App {
     case EvalState(e, env, s) => for(i <- aeval(e, env, s)) yield i;
   }
 
+/*
   def applyList(in: List[Set[Closure]]): Set[List[Closure]] = {
     if(in.length == 0) {
       return Set[List[Closure]](List[Closure]());
@@ -38,14 +39,25 @@ object Analysis extends App {
       return for(i <- in(0); j <- applyList(in.tail)) yield List(i) ++ j;
     }
   }
+*/
 
   def astep(state: State): Set[State] = state match {
     case EvalState(ApplyExp(prog, arg), env, s) =>
       Set(ApplyState(EvalState(prog, env, s), for(i <- arg) yield EvalState(i, env, s), s));
     case EvalState(e, env, s) => for(i <- aeval(e, env, s)) yield closureToEval(i, s);
-    case ApplyState(f, x, s) =>
-      val b = for (c <- x) yield aevalState(c)
+    case ApplyState(f, x, s) => {
+      val tmpProducers = for(c <- x) yield new EvalProducer(c);
+      var b = List[Set[Closure]]();
+      for (c <- tmpProducers) {
+        var tmpSet = Set[Closure]();
+        for(i <- c.iterator) {
+          tmpSet ++= i
+        }
+        b ++= List(tmpSet);
+      }
+//      val b = for (c <- x) yield aevalState(c)
       for(a <- aevalState(f)) yield closureToEval(aapply(a, b, s), s);
+    }
     case HaltState() => Set(HaltState());
   }
 
@@ -92,13 +104,13 @@ object Analysis extends App {
 //                                   ApplyExp(VarExp("b"), List(VarExp("a"), VarExp("b")))),
 //                           LambExp(List(VarExp("q"), VarExp("w")),
 //                                   ApplyExp(VarExp("w"), List(VarExp("q"), VarExp("w"))))));
-  val code = ApplyExp(LambExp(List(VarExp("x")), ApplyExp(VarExp("x"), List(VarExp("x")))),
-                      List(LambExp(List(VarExp("x")), ApplyExp(VarExp("x"), List(VarExp("x"))))));
-//  val code = ApplyExp(LambExp(List(VarExp("x"), VarExp("k")),
-//                              ApplyExp(VarExp("k"), List(VarExp("x")))),
-//                      List(LambExp(List[VarExp](), HaltExp()),
-//                           LambExp(List(VarExp("a")),
-//                                   ApplyExp(VarExp("a"), List[VarExp]()))));
+//  val code = ApplyExp(LambExp(List(VarExp("x")), ApplyExp(VarExp("x"), List(VarExp("x")))),
+//                      List(LambExp(List(VarExp("x")), ApplyExp(VarExp("x"), List(VarExp("x"))))));
+  val code = ApplyExp(LambExp(List(VarExp("x"), VarExp("k")),
+                              ApplyExp(VarExp("k"), List(VarExp("x")))),
+                      List(LambExp(List[VarExp](), HaltExp()),
+                           LambExp(List(VarExp("a")),
+                                   ApplyExp(VarExp("a"), List[VarExp]()))));
 
   val storeSize = 5;
   val startState = ainject(code, storeSize);

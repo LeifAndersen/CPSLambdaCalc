@@ -27,6 +27,15 @@ class StateProducer(n: State) extends Producer[Set[State]] {
   }
 }
 
+class EvalProducer(n: State) extends Producer[Set[Closure]] {
+  def produceValues = traverse(n);
+  def traverse(n: State) {
+    if(n != null) {
+      produce(Analysis.aevalState(n))
+    }
+  }
+}
+
 abstract class Producer[T] {
   private val Undefined = new Object
   protected def produceValues: Any
