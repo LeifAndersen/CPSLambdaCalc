@@ -47,13 +47,12 @@ object Analysis extends App {
     case EvalState(e, env, s) => for(i <- aeval(e, env, s)) yield closureToEval(i, s);
     case ApplyState(f, x, s) => {
       val tmpProducers = for(c <- x) yield new EvalProducer(c);
-      var b = List[Set[Closure]]();
-      for (c <- tmpProducers) {
+      val b = for (c <- tmpProducers) yield {
         var tmpSet = Set[Closure]();
         for(i <- c.iterator) {
           tmpSet ++= i
         }
-        b ++= List(tmpSet);
+        tmpSet
       }
 //      val b = for (c <- x) yield aevalState(c)
       for(a <- aevalState(f)) yield closureToEval(aapply(a, b, s), s);
