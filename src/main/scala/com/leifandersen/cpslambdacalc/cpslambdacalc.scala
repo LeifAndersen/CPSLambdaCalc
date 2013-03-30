@@ -54,7 +54,6 @@ object Analysis extends App {
         }
         tmpSet
       }
-//      val b = for (c <- x) yield aevalState(c)
       for(a <- aevalState(f)) yield closureToEval(aapply(a, b, s), s);
     }
     case HaltState() => Set(HaltState());
@@ -66,14 +65,8 @@ object Analysis extends App {
 
   def afix(in: Map[State,Set[State]]): Map[State,Set[State]] = {
     var next = in;
-    var producers = Map[State, StateProducer]();
-    for(i <- in.values; j <- i) {
-      if(!next.contains(j)) {
-        producers += (j -> new StateProducer(j))
-//        var step = astep(j);
-//        next += (j -> step);
-      }
-    }
+    val producers = for(i <- in; j <- i._2; if (!next.contains(j))) yield
+      (j -> new StateProducer(j))
     for(i <- producers.keys) {
       var tmpStep = Set[State]();
       for(j <- producers(i).iterator) {
