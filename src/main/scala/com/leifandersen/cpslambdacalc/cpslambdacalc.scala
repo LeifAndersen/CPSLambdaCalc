@@ -3,6 +3,8 @@ package com.leifandersen.cpslambdacalc
 import scala.actors.Actor
 import scala.actors.Actor._
 
+import Scalify._
+
 // Language:
 // <cexp> ::= (<aexp> <aexp>*)
 //         |   <halt>
@@ -89,14 +91,18 @@ object Analysis extends App {
 //                                   ApplyExp(VarExp("w"), List(VarExp("q"), VarExp("w"))))));
 //  val code = ApplyExp(LambExp(List(VarExp("x")), ApplyExp(VarExp("x"), List(VarExp("x")))),
 //                      List(LambExp(List(VarExp("x")), ApplyExp(VarExp("x"), List(VarExp("x"))))));
-  val code = ApplyExp(LambExp(List(VarExp("x"), VarExp("k")),
-                              ApplyExp(VarExp("k"), List(VarExp("x")))),
-                      List(LambExp(List[VarExp](), HaltExp()),
-                           LambExp(List(VarExp("a")),
-                                   ApplyExp(VarExp("a"), List[VarExp]()))));
+//  val code = ApplyExp(LambExp(List(VarExp("x"), VarExp("k")),
+//                              ApplyExp(VarExp("k"), List(VarExp("x")))),
+//                      List(LambExp(List[VarExp](), HaltExp()),
+//                           LambExp(List(VarExp("a")),
+//                                   ApplyExp(VarExp("a"), List[VarExp]()))));
 //  val code = ApplyExp(LambExp(List(VarExp("x")), ApplyExp(VarExp("x"), List[VarExp]())),
 //                      List(LambExp(List[VarExp](), HaltExp())));
 
+//  val code = scalify("((λ (x) (x x)) (λ (x) (x x)))");
+  val code = scalify("""((λ (x k) (k x))
+                         (λ () Halt)
+                         (λ (k) (k)))""")
 
   val storeSize = 1;
   val startState = ainject(code, storeSize);

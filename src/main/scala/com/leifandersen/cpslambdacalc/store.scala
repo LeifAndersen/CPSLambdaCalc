@@ -17,9 +17,6 @@ class Store(maxId: Int) {
   }
 
   def aextend(e: Set[Closure]): Address = {
-    println()
-    println("Extending Store:")
-    println(aStore)
     val addr = Address(id);
     if(aStore.contains(addr)) {
       for(i <- e) {
@@ -29,8 +26,6 @@ class Store(maxId: Int) {
       aStore += (addr -> e);
     }
     id = (id + 1) % maxId;
-    println(aStore)
-    println()
     return addr;
   }
 
