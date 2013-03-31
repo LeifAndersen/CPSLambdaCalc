@@ -99,12 +99,22 @@ object Analysis extends App {
 //  val code = ApplyExp(LambExp(List(VarExp("x")), ApplyExp(VarExp("x"), List[VarExp]())),
 //                      List(LambExp(List[VarExp](), HaltExp())));
 
-//  val code = scalify("((λ (x) (x x)) (λ (x) (x x)))");
-  val code = scalify("""((λ (x k) (k x))
-                         (λ () Halt)
-                         (λ (k) (k)))""")
+  val code = scalify("((λ (x) (x x)) (λ (x) (x x)))");
+//  val code = scalify("""((λ (x k) (k x))
+//                         (λ () Halt)
+//                         (λ (k) (k)))""")
+//  val code = scalify("""((λ (x k w) (k w x))
+//                         (λ (x k) (k (λ () (x))))
+//                         (λ (x k) (k x x))
+//                         (λ () Halt))""");
+//  val code = scalify("""((λ (x k w a b) (k w x))
+//                         (λ (x k) (k (λ (y) (x y))))
+//                         (λ (x k) (k (λ (y) (x y)) (λ () (x))))
+//                         (λ (x) ((λ (y) (x y)) (λ (y) (y))))
+//                         (λ (a b) (b a (λ (x y z) (y x x z))))
+//                         (λ (a b) (b a (λ () Halt))))""");
 
-  val storeSize = 1;
+  val storeSize = 10000;
   val startState = ainject(code, storeSize);
   val result = arun(startState);
   val dot = Dotify.dotify(result);
