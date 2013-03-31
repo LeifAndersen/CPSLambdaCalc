@@ -12,6 +12,8 @@ import scala.actors.Actor._
 
 object Analysis extends App {
 
+  val HaltClosure = Closure(LambExp(List(),HaltExp()),Map())
+
   def closureToEval(c: Closure, s: Store): EvalState = c match {
     case Closure(e, env) => EvalState(e, env, s);
   }
@@ -19,27 +21,16 @@ object Analysis extends App {
   def aeval(e: Exp, env: Map[VarExp, Address], store: Store): Set[Closure] = e match {
     case LambExp(param, body) => Set(Closure(e, env));
     case a: VarExp => store.alookup(env(a));
-    //case a: HaltExp => Set(HaltState());
     case a: HaltExp => Set[Closure]();
   }
 
   def aapply(f: Closure, x: List[Set[Closure]], store: Store): Closure = f match {
-    case Closure(LambExp(param, body), env) => Closure(body, env ++ param.zip(for(i <- x) yield store.aextend(i)));
+    case Closure(LambExp(param, body), env) => Closure(body, env ++ param.zipAll(for(i <- x) yield store.aextend(i), VarExp("null"), Address(0)));
   }
 
   def aevalState(state: State): Set[Closure] = state match {
     case EvalState(e, env, s) => for(i <- aeval(e, env, s)) yield i;
   }
-
-/*
-  def applyList(in: List[Set[Closure]]): Set[List[Closure]] = {
-    if(in.length == 0) {
-      return Set[List[Closure]](List[Closure]());
-    } else {
-      return for(i <- in(0); j <- applyList(in.tail)) yield List(i) ++ j;
-    }
-  }
-*/
 
   def astep(state: State): Set[State] = state match {
     case EvalState(ApplyExp(prog, arg), env, s) =>
@@ -103,8 +94,11 @@ object Analysis extends App {
                       List(LambExp(List[VarExp](), HaltExp()),
                            LambExp(List(VarExp("a")),
                                    ApplyExp(VarExp("a"), List[VarExp]()))));
+//  val code = ApplyExp(LambExp(List(VarExp("x")), ApplyExp(VarExp("x"), List[VarExp]())),
+//                      List(LambExp(List[VarExp](), HaltExp())));
 
-  val storeSize = 5;
+
+  val storeSize = 1;
   val startState = ainject(code, storeSize);
   val result = arun(startState);
   val dot = Dotify.dotify(result);

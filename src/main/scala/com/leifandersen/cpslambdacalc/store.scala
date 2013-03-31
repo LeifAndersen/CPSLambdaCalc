@@ -17,21 +17,28 @@ class Store(maxId: Int) {
   }
 
   def aextend(e: Set[Closure]): Address = {
+    println()
+    println("Extending Store:")
+    println(aStore)
     val addr = Address(id);
     if(aStore.contains(addr)) {
       for(i <- e) {
-        aStore = aStore + (addr -> (aStore(addr) + i));
+        aStore += (addr -> (aStore(addr) + i));
       }
     } else {
       aStore += (addr -> e);
     }
     id = (id + 1) % maxId;
+    println(aStore)
+    println()
     return addr;
   }
 
   def alookup(e: Address): Set[Closure] = {
     return aStore(e);
   }
+
+  override def toString = aStore.toString
 }
 
 object Store {
