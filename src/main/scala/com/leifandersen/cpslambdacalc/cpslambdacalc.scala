@@ -12,7 +12,7 @@ import Scalify._
 //         | <var>
 //
 
-object Analysis extends App {
+object CPSLambdaCalc {
 
   val HaltClosure = Closure(LambExp(List(),HaltExp()),Map())
 
@@ -52,6 +52,17 @@ object Analysis extends App {
     case HaltState() => Set(HaltState());
   }
 
+  def anaivestep(state: State): Set[State] = state match {
+    case EvalState(ApplyExp(prog, arg), env, s) =>
+      Set(ApplyState(EvalState(prog, env, s), for(i <- arg) yield EvalState(i, env, s), s));
+    case EvalState(e, env, s) => for(i <- aeval(e, env, s)) yield closureToEval(i, s);
+    case ApplyState(f, x, s) => {
+      val b = for (c <- x) yield aevalState(c)
+      for(a <- aevalState(f)) yield closureToEval(aapply(a, b, s), s);
+    }
+    case HaltState() => Set(HaltState());
+  }
+
   def ainject(code: Exp, i: Int): EvalState = {
     return EvalState(code, Map[VarExp,Address](), Store(i))
   }
@@ -74,9 +85,29 @@ object Analysis extends App {
     }
   }
 
+  def anaivefix(in: Map[State,Set[State]]): Map[State,Set[State]] = {
+    var next = in;
+    for(i <- in.values; j <- i) {
+      if(!next.contains(j)) {
+        val step = anaivestep(j);
+        next += (j -> step);
+      }
+    }
+    if(in == next) {
+      return next;
+    } else {
+      return anaivefix(next);
+    }
+  }
+
   def arun(in: State): Map[State,Set[State]] = {
     val step = astep(in);
     afix(Map(in->step));
+  }
+
+  def anaiverun(in: State): Map[State,Set[State]] = {
+    val step = anaivestep(in);
+    anaivefix(Map(in->step));
   }
 
 
@@ -99,7 +130,7 @@ object Analysis extends App {
 //  val code = ApplyExp(LambExp(List(VarExp("x")), ApplyExp(VarExp("x"), List[VarExp]())),
 //                      List(LambExp(List[VarExp](), HaltExp())));
 
-  val code = scalify("((λ (x) (x x)) (λ (x) (x x)))");
+//  val code = scalify("((λ (x) (x x)) (λ (x) (x x)))");
 //  val code = scalify("""((λ (x k) (k x))
 //                         (λ () Halt)
 //                         (λ (k) (k)))""")
@@ -107,16 +138,25 @@ object Analysis extends App {
 //                         (λ (x k) (k (λ () (x))))
 //                         (λ (x k) (k x x))
 //                         (λ () Halt))""");
-//  val code = scalify("""((λ (x k w a b) (k w x))
-//                         (λ (x k) (k (λ (y) (x y))))
-//                         (λ (x k) (k (λ (y) (x y)) (λ () (x))))
-//                         (λ (x) ((λ (y) (x y)) (λ (y) (y))))
-//                         (λ (a b) (b a (λ (x y z) (y x x z))))
-//                         (λ (a b) (b a (λ () Halt))))""");
+  val code = scalify("""((λ (x k w a b) (k w x))
+                         (λ (x k) (k (λ (y) (x y))))
+                         (λ (x k) (k (λ (y) (x y)) (λ () (x))))
+                         (λ (x) ((λ (y) (x y)) (λ (y) (y))))
+                         (λ (a b) (b a (λ (x y z) (y x x z))))
+                         (λ (a b) (b a (λ () Halt))))""");
+  def analyze(code: Exp, storeSize: Int): String = {
+    val startState = ainject(code, storeSize);
+    val result = arun(startState);
+    val dot = Dotify.dotify(result);
+    return dot;
+  }
 
-  val storeSize = 10000;
-  val startState = ainject(code, storeSize);
-  val result = arun(startState);
-  val dot = Dotify.dotify(result);
-  println(dot);
+  def analyzeNaive(code: Exp, storeSize: Int): String = {
+    val startState = ainject(code, storeSize);
+    val result = anaiverun(startState);
+    val dot = Dotify.dotify(result);
+    return dot;
+  }
+
+//  println(dot);
 }

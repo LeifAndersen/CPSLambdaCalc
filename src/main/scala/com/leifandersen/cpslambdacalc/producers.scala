@@ -2,6 +2,7 @@ package com.leifandersen.cpslambdacalc
 
 import scala.actors.Actor
 import scala.actors.Actor._
+import CPSLambdaCalc._
 
 case object Next
 case object Stop
@@ -11,7 +12,7 @@ class SetStateProducer(n: Set[State]) extends Producer[Map[State, Set[State]]] {
   def traverse(n: Set[State]) {
     if(n != null) {
       for(i <- n) {
-        var next = Analysis.astep(i)
+        var next = astep(i)
         produce(Map(i -> next))
       }
     }
@@ -22,7 +23,7 @@ class StateProducer(n: State) extends Producer[Set[State]] {
   def produceValues = traverse(n);
   def traverse(n: State) {
     if(n != null) {
-      produce(Analysis.astep(n))
+      produce(astep(n))
     }
   }
 }
@@ -31,7 +32,7 @@ class EvalProducer(n: State) extends Producer[Set[Closure]] {
   def produceValues = traverse(n);
   def traverse(n: State) {
     if(n != null) {
-      produce(Analysis.aevalState(n))
+      produce(aevalState(n))
     }
   }
 }
