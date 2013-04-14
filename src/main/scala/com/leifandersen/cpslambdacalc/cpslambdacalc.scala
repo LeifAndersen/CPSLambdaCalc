@@ -7,14 +7,13 @@ import Scalify._
 
 // Language:
 // <cexp> ::= (<aexp> <aexp>*)
-//         |   <halt>
 // <aexp> ::= (λ (<var>*) <cexp>)
 //         | <var>
-//
+//         | <halt>
 
 object CPSLambdaCalc {
 
-  val HaltClosure = Closure(LambExp(List(),HaltExp()),Map())
+//  val HaltClosure = Closure(LambExp(List(),HaltExp()),Map())
 
   def closureToEval(c: Closure, s: Store): EvalState = c match {
     case Closure(e, env) => EvalState(e, env, s);
@@ -26,8 +25,10 @@ object CPSLambdaCalc {
     case a: HaltExp => Set[Closure]();
   }
 
-  def aapply(f: Closure, x: List[Set[Closure]], store: Store): Closure = f match {
-    case Closure(LambExp(param, body), env) => Closure(body, env ++ param.zipAll(for(i <- x) yield store.aextend(i), VarExp("null"), Address(0)));
+  def aapply(f: Closure, x: List[Set[Closure]], store: Store): EvalState = f match {
+    case Closure(LambExp(param, body), env) => {
+      EvalState(body, env ++ param.zipAll(for(i <- x) yield store.aextend(i), VarExp("null"), Address(0)), store);
+    }
   }
 
   def aevalState(state: State): Set[Closure] = state match {
@@ -47,7 +48,7 @@ object CPSLambdaCalc {
         }
         tmpSet
       }
-      for(a <- aevalState(f)) yield closureToEval(aapply(a, b, s), s);
+      for(a <- aevalState(f); if (a.e.isInstanceOf[LambExp]); if (a.e.asInstanceOf[LambExp].param.length == b.length)) yield aapply(a, b, s);
     }
     case HaltState() => Set(HaltState());
   }
@@ -58,7 +59,7 @@ object CPSLambdaCalc {
     case EvalState(e, env, s) => for(i <- aeval(e, env, s)) yield closureToEval(i, s);
     case ApplyState(f, x, s) => {
       val b = for (c <- x) yield aevalState(c)
-      for(a <- aevalState(f)) yield closureToEval(aapply(a, b, s), s);
+      for(a <- aevalState(f); if (a.e.isInstanceOf[LambExp]); if (a.e.asInstanceOf[LambExp].param.length == b.length)) yield aapply(a, b, s);
     }
     case HaltState() => Set(HaltState());
   }
@@ -86,12 +87,14 @@ object CPSLambdaCalc {
   }
 
   def anaivefix(in: Map[State,Set[State]]): Map[State,Set[State]] = {
+    println("Next Step")
     var next = in;
-    for(i <- in.values; j <- i) {
-      if(!next.contains(j)) {
-        val step = anaivestep(j);
-        next += (j -> step);
-      }
+    var count = 1;
+    for(i <- in.values; j <- i; if(!next.contains(j))) {
+      println(count);
+      count += 1;
+      val step = anaivestep(j);
+      next += (j -> step);
     }
     if(in == next) {
       return next;
@@ -138,20 +141,31 @@ object CPSLambdaCalc {
 //                         (λ (x k) (k (λ () (x))))
 //                         (λ (x k) (k x x))
 //                         (λ () Halt))""");
-  val code = scalify("""((λ (x k w a b) (k w x))
-                         (λ (x k) (k (λ (y) (x y))))
-                         (λ (x k) (k (λ (y) (x y)) (λ () (x))))
-                         (λ (x) ((λ (y) (x y)) (λ (y) (y))))
-                         (λ (a b) (b a (λ (x y z) (y x x z))))
-                         (λ (a b) (b a (λ () Halt))))""");
-  def analyze(code: Exp, storeSize: Int): String = {
+//  val code = scalify("""((λ (x k w a b) (k w x))
+//                         (λ (x k) (k (λ (y) (x y))))
+//                         (λ (x k) (k (λ (y) (x y)) (λ () (x))))
+//                         (λ (x) ((λ (y) (x y)) (λ (y) (y))))
+//                         (λ (a b) (b a (λ (x y z) (y x x z))))
+//                         (λ (a b) (b a (λ () Halt))))""");
+
+  def analyze(code: Exp, storeSize: Int) {
+    val startState = ainject(code, storeSize);
+    val result = arun(startState);
+  }
+
+  def analyzeAndGenerate(code: Exp, storeSize: Int): String = {
     val startState = ainject(code, storeSize);
     val result = arun(startState);
     val dot = Dotify.dotify(result);
     return dot;
   }
 
-  def analyzeNaive(code: Exp, storeSize: Int): String = {
+  def analyzeNaive(code: Exp, storeSize: Int) {
+    val startState = ainject(code, storeSize);
+    val result = anaiverun(startState);
+  }
+
+  def analyzeNaiveAndGenerate(code: Exp, storeSize: Int): String = {
     val startState = ainject(code, storeSize);
     val result = anaiverun(startState);
     val dot = Dotify.dotify(result);

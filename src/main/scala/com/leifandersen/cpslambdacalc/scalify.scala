@@ -19,6 +19,8 @@ object Scalify {
   def scalifySExp(in: SExp): Exp = in match {
     case L(arg) => scalifyList(arg)
     case S("Halt") => HaltExp()
+    case S("HALT") => HaltExp()
+    case S("halt") => HaltExp()
     case S(symbol) => VarExp(symbol);
     case Z(z) => VarExp(z.toString);
   }
@@ -45,13 +47,15 @@ object Scalify {
       LambExp(for(i <- args) yield scalifyArg(i), scalifyBody(body))
     case L(List(S("lambda"), L(args), body)) =>
       LambExp(for(i <- args) yield scalifyArg(i), scalifyBody(body))
+    case S("Halt") => HaltExp()
+    case S("HALT") => HaltExp()
+    case S("halt") => HaltExp()
     case S(symbol) => VarExp(symbol);
     case Z(z) => VarExp(z.toString);
     case _ => throw new Exception("Not a valid AExp: " + in)
   }
 
   def scalifyBody(in: SExp): CExp = in match {
-    case S("Halt") => HaltExp()
     case L(func :: tail) =>
       ApplyExp(scalifyAExp(func), for(i <- tail) yield scalifyAExp(i))
     case _ => throw new Exception("Not a valid CExp: " + in)

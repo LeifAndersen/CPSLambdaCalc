@@ -36,8 +36,8 @@ object CPSTimer extends App {
     return sum/diffs.length;
   }
 
-  val storeSize = 100;
-  val code = scalify("((λ (x) (x x)) (λ (x) (x x)))");
+  val code = CodeSamples.fact5;
+  val storeSize = 1;
   val reps = 10;
   val startup = timeThread(code, storeSize, reps);
   val thread = timeThread(code, storeSize,reps);

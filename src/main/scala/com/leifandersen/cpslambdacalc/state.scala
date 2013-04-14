@@ -6,13 +6,13 @@ abstract class CExp extends Exp { }
 
 case class ApplyExp(prog: AExp, arg: List[AExp]) extends CExp { }
 
-case class HaltExp() extends CExp { }
-
 abstract class AExp() extends Exp { }
 
 case class LambExp(param: List[VarExp], body: CExp) extends AExp { }
 
 case class VarExp(value: String) extends AExp { }
+
+case class HaltExp() extends AExp { }
 
 
 case class Closure(e: Exp, env: Map[VarExp, Address]) { }
