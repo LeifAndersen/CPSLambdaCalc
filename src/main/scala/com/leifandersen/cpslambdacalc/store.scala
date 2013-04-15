@@ -34,8 +34,22 @@ class Store(maxId: Int) {
   }
 
   override def toString = aStore.toString
+
+  def size: Int = maxId;
+
+  def copy(other: Store) {
+    aStore = other.aStore;
+  }
 }
 
 object Store {
   def apply(i: Int) = new Store(i)
+}
+
+object CopyStore {
+  def apply(store: Store): Store = {
+    var s = Store(store.size);
+    s.copy(store);
+    return s;
+  }
 }
