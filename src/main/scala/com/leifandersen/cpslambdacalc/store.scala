@@ -35,6 +35,11 @@ class Store(maxId: Int) {
 
   override def toString = aStore.toString
 
+  override def equals(a: Any) = a match {
+    case s: Store => aStore = s.aStore
+    case _ => false
+  }
+
   def size: Int = maxId;
 
   def copy(other: Store) {
@@ -44,12 +49,10 @@ class Store(maxId: Int) {
 
 object Store {
   def apply(i: Int) = new Store(i)
-}
-
-object CopyStore {
-  def apply(store: Store): Store = {
+  def copy(store: Store): Store = {
     var s = Store(store.size);
     s.copy(store);
     return s;
   }
 }
+
