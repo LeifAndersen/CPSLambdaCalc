@@ -1,26 +1,25 @@
 package com.leifandersen.cpslambdacalc
 
-class Store(val maxId: Int) {
-  var id = 0;
+class Store() {
 
   var aStore = Map[Address, Set[Closure]]();
-  for(i <- 0 to maxId) {
-    val addr = Address(i);
-    aStore += (addr -> Set[Closure]());
+
+  def aextendSingle(a: Address, e: Closure): Address = {
+    if(aStore.contains(a)) {
+      aStore += (a -> (aStore(a) + e));
+    } else {
+      aStore += (a -> Set(e));
+    }
+    return a;
   }
 
-  def aextendSingle(e: Closure): Address = {
-    val addr = Address(id);
-    aStore += (addr -> (aStore(addr) + e));
-    id = (id + 1) % maxId;
-    return addr;
-  }
-
-  def aextend(e: Set[Closure]): Address = {
-    val addr = Address(id);
-    aStore += (addr -> (aStore(addr) ++ e));
-    id = (id + 1) % maxId;
-    return addr;
+  def aextend(a: Address, e: Set[Closure]): Address = {
+    if(aStore.contains(a)) {
+      aStore += (a -> (aStore(a) ++ e));
+    } else {
+      aStore += (a -> e);
+    }
+    return a;
   }
 
   def alookup(e: Address): Set[Closure] = {
@@ -34,17 +33,15 @@ class Store(val maxId: Int) {
     case _ => false
   }
 
-  def size: Int = maxId;
-
   def copy(other: Store) {
     aStore = other.aStore;
   }
 }
 
 object Store {
-  def apply(i: Int) = new Store(i)
+  def apply() = new Store()
   def copy(store: Store): Store = {
-    var s = Store(store.size);
+    var s = Store();
     s.copy(store);
     return s;
   }

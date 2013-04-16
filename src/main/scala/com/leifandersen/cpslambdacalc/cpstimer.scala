@@ -5,22 +5,22 @@ import Scalify._
 
 object CPSTimer extends App {
 
-  def timeThread(code: Exp, storeSize: Int, i: Int): List[(Long, Long)] = {
+  def timeThread(code: Exp, i: Int): List[(Long, Long)] = {
     var results = List[(Long, Long)]();
     for(i <- 0 to i) {
       val start = System.currentTimeMillis;
-      analyze(code, storeSize);
+      analyze(code);
       val end = System.currentTimeMillis;
       results ++= List((start, end));
     }
     return results;
   }
 
-  def timeNaive(code: Exp, storeSize: Int, i: Int): List[(Long, Long)] = {
+  def timeNaive(code: Exp, i: Int): List[(Long, Long)] = {
     var results = List[(Long, Long)]();
     for(i <- 0 to i) {
       val start = System.currentTimeMillis;
-      analyzeNaive(code, storeSize);
+      analyzeNaive(code);
       val end = System.currentTimeMillis;
       results ++= List((start, end));
     }
@@ -36,13 +36,12 @@ object CPSTimer extends App {
     return sum/diffs.length;
   }
 
-  val code = CodeSamples.fact5;
-  val storeSize = 1;
-  val reps = 10;
-  val startup = timeThread(code, storeSize, reps);
-  val thread = timeThread(code, storeSize,reps);
-  val startup2 = timeNaive(code, storeSize, reps);
-  val naive = timeNaive(code, storeSize, reps);
+  val code = CodeSamples.fact20;
+  val reps = 20;
+  val startup = timeThread(code, reps);
+  val thread = timeThread(code, reps);
+  val startup2 = timeNaive(code, reps);
+  val naive = timeNaive(code, reps);
   println(avergeRunTime(thread));
   println();
   println(avergeRunTime(naive));

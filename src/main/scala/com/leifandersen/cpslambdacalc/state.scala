@@ -18,7 +18,7 @@ case class HaltExp() extends AExp { }
 case class Closure(e: Exp, env: Map[VarExp, Address]) { }
 
 
-case class Address(address: Int) { }
+case class Address(address: Exp) { }
 
 
 abstract class State { }
