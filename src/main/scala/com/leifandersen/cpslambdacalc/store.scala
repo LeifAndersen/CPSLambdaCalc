@@ -1,30 +1,24 @@
 package com.leifandersen.cpslambdacalc
 
-class Store(maxId: Int) {
+class Store(val maxId: Int) {
   var id = 0;
 
   var aStore = Map[Address, Set[Closure]]();
+  for(i <- 0 to maxId) {
+    val addr = Address(i);
+    aStore += (addr -> Set[Closure]());
+  }
 
   def aextendSingle(e: Closure): Address = {
     val addr = Address(id);
-    if(aStore.contains(addr)) {
-      aStore = aStore + (addr -> (aStore(addr) + e));
-    } else {
-      aStore += (addr -> Set(e));
-    }
+    aStore += (addr -> (aStore(addr) + e));
     id = (id + 1) % maxId;
     return addr;
   }
 
   def aextend(e: Set[Closure]): Address = {
     val addr = Address(id);
-    if(aStore.contains(addr)) {
-      for(i <- e) {
-        aStore += (addr -> (aStore(addr) + i));
-      }
-    } else {
-      aStore += (addr -> e);
-    }
+    aStore += (addr -> (aStore(addr) ++ e));
     id = (id + 1) % maxId;
     return addr;
   }
@@ -36,7 +30,7 @@ class Store(maxId: Int) {
   override def toString = aStore.toString
 
   override def equals(a: Any) = a match {
-    case s: Store => aStore = s.aStore
+    case s: Store => aStore == s.aStore
     case _ => false
   }
 

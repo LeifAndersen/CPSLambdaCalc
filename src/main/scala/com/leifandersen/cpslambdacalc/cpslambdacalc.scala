@@ -27,9 +27,10 @@ object CPSLambdaCalc {
 
   def aapply(f: Closure, x: List[Set[Closure]], store: Store): EvalState = f match {
     case Closure(LambExp(param, body), env) => {
-//      var s = CopyStore(store)
+//      var s = Store.copy(store)
       var s = store
-      EvalState(body, env ++ param.zipAll(for(i <- x) yield s.aextend(i), VarExp("null"), Address(0)), s);
+//      EvalState(body, env ++ param.zipAll(for(i <- x) yield s.aextend(i), VarExp("null"), Address(0)), s);
+      EvalState(body, env ++ param.zip(for(i <- x) yield s.aextend(i)), s);
     }
   }
 
@@ -91,7 +92,10 @@ object CPSLambdaCalc {
   def anaivefix(in: Map[State,Set[State]]): Map[State,Set[State]] = {
     println("Next Step")
     var next = in;
+    var count = 1
     for(i <- in.values; j <- i; if(!next.contains(j))) {
+      println(count)
+      count += 1
       val step = anaivestep(j);
       next += (j -> step);
     }
