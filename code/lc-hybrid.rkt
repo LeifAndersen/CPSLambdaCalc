@@ -50,7 +50,8 @@
 
 ;; Examples
 
-(M '(λ (x) x))
+;(M '(λ (x) x))
 
-(T-c '(g a) 'halt)
-
+;(T-c '(g a) 'halt)
+(write (T-c (read) 'Halt))
+(newline)

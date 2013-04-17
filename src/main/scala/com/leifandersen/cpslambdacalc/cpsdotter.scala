@@ -5,5 +5,5 @@ import Scalify._
 
 object CPSDotter extends App {
 //  println(analyzeNaiveAndGenerate(CodeSamples.omega))
-  println(analyzeAndGenerate(CodeSamples.omega))
+  println(analyzeAndGenerate(CodeSamples.fact5))
 }

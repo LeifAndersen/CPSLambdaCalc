@@ -280,4 +280,5 @@
 (check-expect (natify (eval R1 ns)) 
               120)
 
-(test)
+;(test)
+(write (compile (read)))
