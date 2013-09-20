@@ -29,6 +29,7 @@ object CPSLambdaCalc {
       var s = store
 //      EvalState(body, env ++ param.zipAll(for(i <- x) yield s.aextend(i), VarExp("null"), Address(0)), s);
       EvalState(body, env ++ param.zip(for(i <- x) yield s.aextend(Address(f.e), i)), s);
+      //EvalState(body, env ++ param.zip(for(i <- x) yield s.aextend(Address(HaltExp()), i)), s);
     }
   }
 

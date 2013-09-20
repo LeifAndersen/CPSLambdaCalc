@@ -20,4 +20,4 @@
                                              (hailstone* (+ (* 3 n) 1) (+ count 1))))))]
         (letrec [(hailstone (λ (n)
                               (hailstone* n 0)))]
-          (hailstone 5))))))
+          (hailstone 20))))))

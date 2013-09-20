@@ -36,7 +36,7 @@ object CPSTimer extends App {
     return sum/diffs.length;
   }
 
-  val code = CodeSamples.fact20;
+  val code = CodeSamples.hail5;
   val reps = 20;
   val startup = timeThread(code, reps);
   val thread = timeThread(code, reps);
